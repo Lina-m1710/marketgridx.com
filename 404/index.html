@@ -1,0 +1,52 @@
+<?php http_response_code(404); ?>
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex,follow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>404 — Nie znaleziono strony | MarketGridX</title>
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Arial;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        background: #070d18;
+        color: #dbeafe;
+      }
+      .box {
+        max-width: 720px;
+        padding: 28px 22px;
+      }
+      a {
+        color: #8fe7ff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .code {
+        opacity: 0.75;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h1>Nie znaleziono strony</h1>
+      <p class="code">
+        Błąd 404 — podany adres nie istnieje lub został przeniesiony.
+      </p>
+      <p>
+        Wróć na <a href="/">stronę główną</a> albo przejdź do
+        <a href="/contact/">kontaktu</a>.
+      </p>
+    </div>
+  </body>
+</html>

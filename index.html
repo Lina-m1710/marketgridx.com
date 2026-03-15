@@ -1,0 +1,1367 @@
+<?php
+declare(strict_types=1);
+
+function is_https(): bool {
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') return true;
+    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') return true;
+    if (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on') return true;
+    return (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+}
+
+function redirect_301(string $url): void {
+    header('Location: ' . $url, true, 301);
+    exit;
+}
+
+function send_404(string $rootDir): void {
+    http_response_code(404);
+
+    $custom404 = rtrim($rootDir, '/\\') . '/404/index.html';
+    if (is_file($custom404)) {
+        require $custom404;
+        exit;
+    }
+
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex,follow" />
+    <title>404 — Nie znaleziono strony | MarketGridX</title>
+  </head>
+  <body style="font-family: system-ui; margin: 40px">
+    <h1>404 — Nie znaleziono strony</h1>
+    <p>Podany adres nie istnieje lub został przeniesiony.</p>
+    <p><a href="/">Wróć na stronę główną</a></p>
+  </body>
+</html>
+"; exit; } $ROOT = __DIR__; $ALLOWED = [
+'about','accessories','apparel','cart','contact','cookies',
+'delivery','payments','poles','privacy','returns','terms', 'skis','ski-boots' ];
+$host = $_SERVER['HTTP_HOST'] ?? 'marketgridx.com'; $uri =
+$_SERVER['REQUEST_URI'] ?? '/'; $qPos = strpos($uri, '?'); if ($qPos === false)
+{ $path = $uri; $query = ''; } else { $path = substr($uri, 0, $qPos); $query =
+substr($uri, $qPos); } if ($path === '') $path = '/'; if ($path[0] !== '/')
+$path = '/' . $path; $changed = false; $targetHost = preg_replace('/^www\./i',
+'', $host); if (!is_https() || stripos($host, 'www.') === 0) { $changed = true;
+} $collapsed = preg_replace('#/+#', '/', $path); if ($collapsed !== $path) {
+$path = $collapsed; $changed = true; } if
+(preg_match('#^/(index)\.(php|html?|htm)$#i', $path)) { $path = '/'; $changed =
+true; } if (preg_match('#^/home(?:\.(php|html?|htm))?/?$#i', $path)) { $path =
+'/'; $changed = true; } if
+(preg_match('#^/([a-z0-9\-]+)/index\.(php|html?|htm)$#i', $path, $m)) { $path =
+'/' . strtolower($m[1]) . '/'; $changed = true; } $trim = trim($path, '/'); if
+($trim !== '' && !str_contains($trim, '/')) { $segLower = strtolower($trim); if
+(in_array($segLower, $ALLOWED, true)) { $canon = '/' . $segLower . '/'; if
+($path !== $canon) { $path = $canon; $changed = true; } } } if ($path === '')
+$path = '/'; if ($changed) { redirect_301('https://' . $targetHost . $path .
+$query); } $trim = trim($path, '/'); if ($trim === '') { } else { if
+(str_contains($trim, '/')) { send_404($ROOT); } if (!in_array($trim, $ALLOWED,
+true)) { send_404($ROOT); } $pageFile = $ROOT . '/' . $trim . '/index.html'; if
+(!is_file($pageFile)) { send_404($ROOT); } require $pageFile; exit; } ?>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="marketgridx.com to przestrzeń stworzona dla miłośników zimy i narciarskiej swobody. Oferujemy starannie wybrane narty, akcesoria oraz sprzęt, który pomaga w pełni cieszyć się każdym zjazdem. Łączymy jakość, komfort i nowoczesne rozwiązania, aby każda chwila na stoku była pewna, płynna i pełna wrażeń. Odkryj sprzęt, który nadąża za Twoim tempem."
+    />
+    <title>
+      marketgridx.com — Narty, sprzęt narciarski i akcesoria na każdy poziom
+    </title>
+    <link rel="canonical" href="https://marketgridx.com/" />
+    <link rel="icon" href="images/favicon.webp" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body>
+    <div class="layout">
+      <header class="header" id="top">
+        <div class="header__wrap">
+          <a class="brand" href="/" aria-label="MarketGridX — Strona główna">
+            <span class="brand__mark" aria-hidden="true"></span>
+            <span class="brand__text">
+              <span class="brand__name">MarketGridX</span>
+              <span class="brand__tag">Sklep narciarski</span>
+            </span>
+          </a>
+
+          <nav class="nav nav--desktop" aria-label="Główna nawigacja">
+            <a class="nav__link" href="/">Strona główna</a>
+            <a class="nav__link" href="skis">Narty</a>
+            <a class="nav__link" href="ski-boots">Buty narciarskie</a>
+            <a class="nav__link" href="poles">Kije narciarskie</a>
+            <a class="nav__link" href="apparel">Odzież</a>
+            <a class="nav__link" href="accessories">Akcesoria</a>
+            <a class="nav__link" href="contact">Kontakt</a>
+          </nav>
+
+          <div class="actions">
+            <a class="iconBtn iconBtn--cart" href="cart" aria-label="Koszyk">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 7h14l-1.5 8H8.2L7 7Z" />
+                <path d="M7 7 6.3 4.5H3" />
+                <path d="M9.5 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+                <path d="M17.5 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+              </svg>
+              <span
+                class="cartBadge"
+                id="cartBadge"
+                aria-label="Produkty w koszyku"
+                >0</span
+              >
+            </a>
+
+            <button
+              class="burger"
+              type="button"
+              id="burgerBtn"
+              aria-label="Otwórz menu"
+              aria-controls="mobileMenu"
+              aria-expanded="false"
+            >
+              <span class="burger__lines" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="mnav" id="mobileMenu" aria-hidden="true">
+          <div class="mnav__panel" role="dialog" aria-label="Menu mobilne">
+            <div class="mnav__top">
+              <span class="mnav__title">Menu</span>
+              <button
+                class="mnav__close"
+                type="button"
+                id="closeMenuBtn"
+                aria-label="Zamknij menu"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="mnav__quick">
+              <a class="pill" href="skis">Przeglądaj narty</a>
+              <a class="pill" href="apparel">Odzież zimowa</a>
+              <a class="pill" href="accessories">Niezbędne akcesoria</a>
+            </div>
+
+            <nav class="mnav__links" aria-label="Nawigacja mobilna">
+              <a class="mnav__link" href="/">Strona główna</a>
+              <a class="mnav__link" href="skis">Narty</a>
+              <a class="mnav__link" href="ski-boots">Buty narciarskie</a>
+              <a class="mnav__link" href="poles">Kije narciarskie</a>
+              <a class="mnav__link" href="apparel">Odzież</a>
+              <a class="mnav__link" href="accessories">Akcesoria</a>
+              <a class="mnav__link" href="contact">Kontakt</a>
+            </nav>
+
+            <div class="mnav__cta">
+              <a class="ctaBtn" href="skis">Przejdź do nart</a>
+              <p class="mnav__hint">
+                Szybka dostawa • Pomoc w doborze • Bezpieczne płatności
+              </p>
+            </div>
+          </div>
+
+          <button
+            class="mnav__backdrop"
+            type="button"
+            id="backdropBtn"
+            aria-label="Zamknij menu"
+          ></button>
+        </div>
+      </header>
+
+      <main class="main">
+        <section class="hero" aria-label="Sekcja główna">
+          <div class="hero__wrap">
+            <div class="hero__left">
+              <div class="hero__chips">
+                <span class="chip">⚡ Szybka dostawa</span>
+                <span class="chip">🧩 Pomoc w doborze</span>
+                <span class="chip">🔒 Bezpieczne płatności</span>
+              </div>
+
+              <h1 class="hero__title">
+                MarketGridX — sprzęt, który daje
+                <span class="glow">pewność</span> od pierwszego zjazdu
+              </h1>
+
+              <p class="hero__lead">
+                Narty, buty narciarskie, kije, odzież i akcesoria — starannie
+                wybrane z myślą o prawdziwych zimowych warunkach. To nie
+                przypadkowy katalog, lecz przemyślana oferta z praktycznymi
+                narzędziami. Wybierz swój poziom, styl jazdy i teren — a
+                pomożemy Ci znaleźć najlepsze rozwiązanie.
+              </p>
+
+              <div class="hero__cta">
+                <a class="btn btn--primary" href="skis">Kup narty</a>
+                <a class="btn btn--ghost" href="accessories"
+                  >Przeglądaj akcesoria</a
+                >
+              </div>
+
+              <div class="hero__trust">
+                <div class="trustItem">
+                  <span class="trustItem__num">24/7</span>
+                  <span class="trustItem__txt">zamawiaj o każdej porze</span>
+                </div>
+
+                <div class="trustItem">
+                  <span class="trustItem__num">Łatwe</span>
+                  <span class="trustItem__txt">zwroty i wymiany</span>
+                </div>
+
+                <div class="trustItem">
+                  <span class="trustItem__num">Pro</span>
+                  <span class="trustItem__txt">praktyczne wskazówki</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero__right" aria-hidden="false">
+              <div class="heroCard heroCard--top">
+                <img
+                  class="heroImg"
+                  src="images/hero-img.webp"
+                  alt="Narciarz na ośnieżonym stoku"
+                  loading="lazy"
+                />
+
+                <div class="heroCard__overlay">
+                  <div class="badge">Nowa kolekcja sezonowa</div>
+                  <div class="miniLine">Lekkość • Stabilność • Komfort</div>
+                </div>
+              </div>
+
+              <div class="heroCard heroCard--bottom">
+                <div class="statRow">
+                  <div class="stat">
+                    <div class="stat__k">Dobór nart</div>
+                    <div class="stat__v">60 sekund</div>
+                  </div>
+
+                  <div class="stat">
+                    <div class="stat__k">Warstwy zimowe</div>
+                    <div class="stat__v">Gotowe zestawy</div>
+                  </div>
+
+                  <div class="stat">
+                    <div class="stat__k">Dopasowanie butów</div>
+                    <div class="stat__v">Prosty przewodnik</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-label="Kategorie">
+          <div class="section__head">
+            <h2 class="h2">Przeglądaj według kategorii</h2>
+            <p class="sub">
+              Siedem przejrzystych stron bez zbędnych elementów. Wybierz
+              kategorię i znajdź dokładnie to, czego potrzebujesz.
+            </p>
+          </div>
+
+          <div class="catGrid">
+            <a class="catCard" href="skis">
+              <div class="catCard__icon">🎿</div>
+              <div class="catCard__body">
+                <h3 class="h3">Narty</h3>
+                <p>
+                  All-mountain, carving i freeride — znajdź styl dopasowany do
+                  siebie.
+                </p>
+                <span class="catCard__link">Przeglądaj narty →</span>
+              </div>
+            </a>
+
+            <a class="catCard" href="ski-boots">
+              <div class="catCard__icon">🥾</div>
+              <div class="catCard__body">
+                <h3 class="h3">Buty narciarskie</h3>
+                <p>
+                  Flex, szerokość i komfort — dopasowanie, które zapewnia
+                  kontrolę i wygodę.
+                </p>
+                <span class="catCard__link">Przeglądaj buty →</span>
+              </div>
+            </a>
+
+            <a class="catCard" href="poles">
+              <div class="catCard__icon">🦯</div>
+              <div class="catCard__body">
+                <h3 class="h3">Kije narciarskie</h3>
+                <p>Lepsza równowaga, kontrola i płynność jazdy na stoku.</p>
+                <span class="catCard__link">Przeglądaj kije →</span>
+              </div>
+            </a>
+
+            <a class="catCard" href="apparel">
+              <div class="catCard__icon">🧥</div>
+              <div class="catCard__body">
+                <h3 class="h3">Odzież narciarska</h3>
+                <p>
+                  Warstwy, które zapewniają ciepło i komfort bez ograniczania
+                  ruchu.
+                </p>
+                <span class="catCard__link">Przeglądaj odzież →</span>
+              </div>
+            </a>
+
+            <a class="catCard" href="accessories">
+              <div class="catCard__icon">🧤</div>
+              <div class="catCard__body">
+                <h3 class="h3">Akcesoria</h3>
+                <p>
+                  Gogle, kaski, rękawice i więcej — komfort oraz bezpieczeństwo
+                  na stoku.
+                </p>
+                <span class="catCard__link">Przeglądaj akcesoria →</span>
+              </div>
+            </a>
+
+            <a class="catCard catCard--wide" href="contact">
+              <div class="catCard__icon">💬</div>
+              <div class="catCard__body">
+                <h3 class="h3">Kontakt</h3>
+                <p>
+                  Podaj swój wzrost, poziom i styl jazdy — pomożemy dobrać
+                  odpowiedni sprzęt.
+                </p>
+                <span class="catCard__link">Skontaktuj się z nami →</span>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        <section class="section" aria-label="Polecane produkty">
+          <div class="section__head section__head--row">
+            <div>
+              <h2 class="h2">Polecane produkty</h2>
+              <p class="sub">
+                Starannie wybrany sprzęt, który odpowiada najczęstszym potrzebom
+                narciarzy.
+              </p>
+            </div>
+
+            <div class="sliderCtrls">
+              <button
+                class="sbtn"
+                type="button"
+                id="featPrev"
+                aria-label="Poprzednie"
+              >
+                ←
+              </button>
+              <button
+                class="sbtn"
+                type="button"
+                id="featNext"
+                aria-label="Następne"
+              >
+                →
+              </button>
+            </div>
+          </div>
+
+          <div class="slider" id="featSlider">
+            <article class="pCard">
+              <img
+                class="pCard__img"
+                src="images/pCard-1.webp"
+                alt="Zbliżenie nart"
+                loading="lazy"
+              />
+              <div class="pCard__body">
+                <div class="pMeta">
+                  <span class="pillTag">All-mountain</span>
+                  <span class="pPrice">$399–$699</span>
+                </div>
+                <h3 class="h3">Zestaw stabilnych nart na co dzień</h3>
+                <p>
+                  Dla narciarzy, którzy oczekują pewności jazdy na
+                  przygotowanych trasach oraz w miękkim śniegu.
+                </p>
+                <a class="pLink" href="skis">Zobacz narty →</a>
+              </div>
+            </article>
+
+            <article class="pCard">
+              <img
+                class="pCard__img"
+                src="images/pCard-2.webp"
+                alt="Buty narciarskie"
+                loading="lazy"
+              />
+              <div class="pCard__body">
+                <div class="pMeta">
+                  <span class="pillTag">Dopasowanie butów</span>
+                  <span class="pPrice">$199–$499</span>
+                </div>
+                <h3 class="h3">Buty narciarskie zapewniające komfort</h3>
+                <p>
+                  Lepsze dopasowanie oznacza lepszą kontrolę. Poznaj flex i
+                  szerokość w prosty sposób.
+                </p>
+                <a class="pLink" href="ski-boots">Zobacz buty →</a>
+              </div>
+            </article>
+
+            <article class="pCard">
+              <img
+                class="pCard__img"
+                src="images/pCard-3.webp"
+                alt="Gogle i kask narciarski"
+                loading="lazy"
+              />
+              <div class="pCard__body">
+                <div class="pMeta">
+                  <span class="pillTag">Bezpieczeństwo</span>
+                  <span class="pPrice">$29–$189</span>
+                </div>
+                <h3 class="h3">Ochrona i dobra widoczność</h3>
+                <p>
+                  Kaski i gogle dopasowane do zmiennych warunków pogodowych na
+                  stoku.
+                </p>
+                <a class="pLink" href="accessories">Zobacz akcesoria →</a>
+              </div>
+            </article>
+
+            <article class="pCard">
+              <img
+                class="pCard__img"
+                src="images/pCard-4.webp"
+                alt="Tkanina kurtki zimowej"
+                loading="lazy"
+              />
+              <div class="pCard__body">
+                <div class="pMeta">
+                  <span class="pillTag">Warstwy odzieży</span>
+                  <span class="pPrice">$39–$299</span>
+                </div>
+                <h3 class="h3">Ciepło bez ograniczania ruchu</h3>
+                <p>
+                  Warstwa bazowa, izolacja i ochrona zewnętrzna — sprawdzone
+                  rozwiązanie na zimę.
+                </p>
+                <a class="pLink" href="apparel">Zobacz odzież →</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section finder" aria-label="Dobór nart">
+          <div class="section__head">
+            <h2 class="h2">Dobierz swoje narty</h2>
+            <p class="sub">
+              Odpowiedz na 4 krótkie pytania — otrzymaj praktyczną rekomendację
+              i przejdź do odpowiedniej kategorii.
+            </p>
+          </div>
+
+          <div class="finderGrid">
+            <form class="finderCard" id="skiFinder">
+              <div class="fRow">
+                <label class="fLabel" for="level">Twój poziom</label>
+                <select class="fSelect" id="level" required>
+                  <option value="" selected disabled>Wybierz…</option>
+                  <option value="beginner">Początkujący</option>
+                  <option value="intermediate">Średniozaawansowany</option>
+                  <option value="advanced">Zaawansowany</option>
+                </select>
+              </div>
+
+              <div class="fRow">
+                <label class="fLabel" for="terrain">Rodzaj terenu</label>
+                <select class="fSelect" id="terrain" required>
+                  <option value="" selected disabled>Wybierz…</option>
+                  <option value="groomers">Głównie przygotowane trasy</option>
+                  <option value="mixed">Mieszany (trasy + poza trasą)</option>
+                  <option value="powder">
+                    Głównie świeży śnieg / freeride
+                  </option>
+                </select>
+              </div>
+
+              <div class="fRow">
+                <label class="fLabel" for="height">Twój wzrost (cm)</label>
+                <input
+                  class="fInput"
+                  id="height"
+                  inputmode="numeric"
+                  placeholder="np. 172"
+                  required
+                />
+              </div>
+
+              <div class="fRow">
+                <label class="fLabel" for="style">Styl jazdy</label>
+                <select class="fSelect" id="style" required>
+                  <option value="" selected disabled>Wybierz…</option>
+                  <option value="calm">Spokojny / kontrolowany</option>
+                  <option value="fast">Szybki / dynamiczny</option>
+                  <option value="playful">Zabawowy / freestyle</option>
+                </select>
+              </div>
+
+              <button class="btn btn--primary btn--full" type="submit">
+                Zobacz rekomendację
+              </button>
+
+              <p class="fine">
+                Wskazówka: jeśli jesteś pomiędzy rozmiarami — wybierz dłuższe
+                narty dla większej stabilności lub krótsze dla łatwiejszego
+                skręcania.
+              </p>
+            </form>
+
+            <div class="finderOut" id="finderOut" aria-live="polite">
+              <div class="finderOut__empty">
+                <div class="finderOut__icon">🧊</div>
+                <div class="finderOut__title">
+                  Tutaj pojawi się Twoja rekomendacja
+                </div>
+                <div class="finderOut__text">
+                  Zaproponujemy typ nart oraz odpowiedni zakres długości i
+                  wskażemy najlepszą kategorię.
+                </div>
+              </div>
+
+              <div class="finderOut__result" hidden>
+                <div class="resultTop">
+                  <div>
+                    <div class="resultKicker">Rekomendowany zestaw</div>
+                    <div class="resultTitle" id="resTitle">—</div>
+                  </div>
+                  <span class="pillTag pillTag--hot" id="resTag">—</span>
+                </div>
+
+                <div class="resultGrid">
+                  <div class="resultBox">
+                    <div class="rk">Typ nart</div>
+                    <div class="rv" id="resType">—</div>
+                  </div>
+
+                  <div class="resultBox">
+                    <div class="rk">Długość</div>
+                    <div class="rv" id="resLen">—</div>
+                  </div>
+
+                  <div class="resultBox">
+                    <div class="rk">Dlaczego</div>
+                    <div class="rv" id="resWhy">—</div>
+                  </div>
+                </div>
+
+                <a class="btn btn--ghost btn--full" id="resLink" href="skis">
+                  Przejdź do rekomendowanej kategorii
+                </a>
+
+                <div class="miniNote">
+                  Chcesz idealnie dopasować komfort jazdy? Zacznij od
+                  <a href="ski-boots">butów narciarskich</a>.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" aria-label="Jak wybrać sprzęt">
+          <div class="section__head">
+            <h2 class="h2">Jak wybrać sprzęt (bez zbędnego komplikowania)</h2>
+            <p class="sub">
+              Krótki przewodnik, który możesz wykorzystać zarówno w sklepie, jak
+              i online.
+            </p>
+          </div>
+
+          <div class="guideGrid">
+            <article class="guideCard">
+              <div class="guideCard__top">
+                <span class="guideIcon">📏</span>
+                <h3 class="h3">Długość nart</h3>
+              </div>
+
+              <ul class="ul">
+                <li>Początkujący: od brody do nosa</li>
+                <li>Średniozaawansowany: od nosa do czoła</li>
+                <li>Zaawansowany: od czoła wzwyż</li>
+              </ul>
+
+              <p class="mini">
+                Krótsze narty = łatwiejsza kontrola. Dłuższe narty = większa
+                stabilność przy prędkości.
+              </p>
+            </article>
+
+            <article class="guideCard">
+              <div class="guideCard__top">
+                <span class="guideIcon">🧩</span>
+                <h3 class="h3">Dopasowanie butów narciarskich</h3>
+              </div>
+
+              <ul class="ul">
+                <li>Zacznij od szerokości skorupy dopasowanej do stopy</li>
+                <li>
+                  Flex: miększy dla komfortu, twardszy dla większej kontroli
+                </li>
+                <li>Stabilność pięty jest ważniejsza niż luz w palcach</li>
+              </ul>
+
+              <p class="mini">
+                Jeśli pięta się unosi — jazda nigdy nie będzie w pełni stabilna.
+              </p>
+            </article>
+
+            <article class="guideCard">
+              <div class="guideCard__top">
+                <span class="guideIcon">🧤</span>
+                <h3 class="h3">Warstwowa odzież</h3>
+              </div>
+
+              <ul class="ul">
+                <li>Warstwa bazowa: odprowadzanie wilgoci</li>
+                <li>Warstwa środkowa: izolacja termiczna (fleece lub puch)</li>
+                <li>Warstwa zewnętrzna: ochrona przed wiatrem i śniegiem</li>
+              </ul>
+
+              <p class="mini">
+                Lepszy system warstw zapewnia więcej ciepła niż sama grubsza
+                kurtka.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section perks" aria-label="Korzyści">
+          <div class="perksGrid">
+            <div class="perk">
+              <div class="perk__ico">🚚</div>
+              <div class="perk__t">Szybka dostawa</div>
+              <div class="perk__p">
+                Starannie zapakowane zamówienia i szybka wysyłka — abyś mógł w
+                pełni cieszyć się sezonem zimowym.
+              </div>
+            </div>
+
+            <div class="perk">
+              <div class="perk__ico">🛡️</div>
+              <div class="perk__t">Bezpieczne płatności</div>
+              <div class="perk__p">
+                Bezpieczny proces płatności oraz przejrzyste informacje o
+                statusie zamówienia.
+              </div>
+            </div>
+
+            <div class="perk">
+              <div class="perk__ico">♻️</div>
+              <div class="perk__t">Przemyślany wybór</div>
+              <div class="perk__p">
+                Wybieraj sprzęt dopasowany do Twoich potrzeb — nie tylko
+                atrakcyjny wizualnie.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="section"
+          aria-label="Najczęściej zadawane pytania"
+          id="faq"
+        >
+          <div class="section__head">
+            <h2 class="h2">FAQ</h2>
+            <p class="sub">
+              Szybkie odpowiedzi na najczęściej zadawane pytania przed zakupem.
+            </p>
+          </div>
+
+          <div class="faq" id="faqBox">
+            <details class="qa">
+              <summary class="qa__q">
+                Jestem początkujący. Co powinienem kupić najpierw?
+              </summary>
+              <div class="qa__a">
+                Zacznij od komfortu i bezpieczeństwa: dobrze dopasowanych butów,
+                kasku i gogli, a następnie wybierz narty odpowiednie do Twojego
+                stylu jazdy i terenu. Jeśli masz już buty, zacznij od wyboru
+                <a href="skis">nart</a>.
+              </div>
+            </details>
+
+            <details class="qa">
+              <summary class="qa__q">
+                Jak dobrać flex butów narciarskich?
+              </summary>
+              <div class="qa__a">
+                Miększy flex zapewnia większy komfort i łatwiejszą kontrolę,
+                natomiast twardszy flex daje lepszą precyzję i stabilność przy
+                większych prędkościach. Jeśli nie masz pewności, wybierz
+                bardziej komfortową opcję i dostosuj sprzęt wraz z rozwojem
+                umiejętności.
+              </div>
+            </details>
+
+            <details class="qa">
+              <summary class="qa__q">
+                Jak najszybciej dobrać odpowiednią długość nart?
+              </summary>
+              <div class="qa__a">
+                Wykorzystaj swój wzrost jako punkt odniesienia (od brody do
+                czoła), a następnie dostosuj długość do swojego stylu jazdy:
+                krótsze narty ułatwiają skręcanie, a dłuższe zapewniają większą
+                stabilność.
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section class="section newsletter" aria-label="Newsletter">
+          <div class="newsletter__box">
+            <div class="newsletter__left">
+              <h2 class="h2">Otrzymaj checklistę „gotowy na zimę”</h2>
+              <p class="sub">
+                Krótka seria e-maili: jak dobrać warstwy odzieży, jak powinny
+                pasować buty narciarskie oraz które akcesoria są naprawdę
+                niezbędne.
+              </p>
+            </div>
+
+            <form class="newsletter__form" id="newsForm">
+              <input
+                class="newsInput"
+                type="email"
+                id="newsEmail"
+                placeholder="Adres e-mail"
+                required
+              />
+
+              <button class="btn btn--primary" type="submit">
+                Wyślij checklistę
+              </button>
+
+              <div class="newsMsg" id="newsMsg" aria-live="polite"></div>
+            </form>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer__wrap">
+          <div class="footer__brand">
+            <div class="footer__logo">
+              <img
+                src="images/logo.webp"
+                alt="Logo MarketGridX"
+                class="footer__logoImg"
+              />
+
+              <div>
+                <div class="footer__name">MarketGridX</div>
+                <div class="footer__tag">Sklep ze sprzętem narciarskim</div>
+              </div>
+            </div>
+
+            <p class="footer__desc">
+              Narty, buty i odzież zimowa najwyższej jakości — starannie
+              wybrane, aby zapewnić wydajność, komfort i bezpieczeństwo na
+              każdym stoku.
+            </p>
+
+            <div class="footer__badges">
+              <span class="footer__badge">Bezpieczne płatności</span>
+              <span class="footer__badge">Szybka dostawa</span>
+              <span class="footer__badge">Wsparcie ekspertów</span>
+            </div>
+          </div>
+
+          <div class="footer__col">
+            <div class="footer__title">Nawigacja</div>
+
+            <a href="/" class="footer__link">Strona główna</a>
+            <a href="skis" class="footer__link">Narty</a>
+            <a href="ski-boots" class="footer__link">Buty narciarskie</a>
+            <a href="poles" class="footer__link">Kije narciarskie</a>
+            <a href="apparel" class="footer__link">Odzież narciarska</a>
+            <a href="accessories" class="footer__link">Akcesoria</a>
+            <a href="contact" class="footer__link">Kontakt</a>
+          </div>
+
+          <div class="footer__col">
+            <div class="footer__title">Informacje</div>
+
+            <a href="delivery" class="footer__link">Dostawa</a>
+            <a href="payments" class="footer__link">Płatności</a>
+            <a href="returns" class="footer__link">Zwroty i reklamacje</a>
+            <p href="about" class="footer__p">
+              <a class="footer__link" href="contact">Kontakt</a> /
+              <a class="footer__link" href="about">O nas</a>
+            </p>
+          </div>
+
+          <div class="footer__col">
+            <div class="footer__title">Pomoc</div>
+
+            <a href="contact" class="footer__link">Kontakt z obsługą</a>
+            <a href="privacy" class="footer__link">Polityka prywatności</a>
+            <a href="terms" class="footer__link">Regulamin</a>
+            <a href="cookies" class="footer__link">Pliki cookies</a>
+          </div>
+
+          <div class="footer__col">
+            <div class="footer__title">Otrzymuj aktualności</div>
+
+            <form class="footer__form" id="footerNewsForm">
+              <input
+                type="email"
+                class="footer__input"
+                placeholder="Twój adres e-mail"
+                required
+              />
+
+              <button class="footer__btn">Subskrybuj</button>
+
+              <div class="footer__msg" id="footerMsg"></div>
+            </form>
+
+            <div class="footer__note">
+              Porady, przewodniki i polecany sprzęt na sezon zimowy.
+            </div>
+
+            <div class="footer__contactBlock">
+              <div class="footer__contactTitle">Kontakt</div>
+
+              <div class="footer__contactItem">
+                <span class="footer__contactLabel">Adres:</span>
+                <div class="footer__contactValue">
+                  MarketGridX Sp. z o.o. ul. Marszałkowska 58, 00-545 Warszawa,
+                  Polska
+                </div>
+              </div>
+
+              <div class="footer__contactItem">
+                <span class="footer__contactLabel">Telefon:</span>
+                <a href="tel:+48692676710" class="footer__contactLink">
+                  +48 692-676-710
+                </a>
+              </div>
+
+              <div class="footer__contactItem">
+                <span class="footer__contactLabel">Email:</span>
+                <a
+                  href="mailto:info@marketgridx.com"
+                  class="footer__contactLink"
+                >
+                  info@marketgridx.com
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer__bottom">
+          <div class="footer__copy">
+            © <span id="footerYear"></span> MarketGridX. Wszelkie prawa
+            zastrzeżone.
+          </div>
+
+          <div class="footer__bottomLinks">
+            <a href="privacy">Polityka prywatności</a>
+            <a href="terms">Regulamin</a>
+            <a href="cookies">Pliki cookies</a>
+          </div>
+        </div>
+      </footer>
+
+      <section
+        class="cookies-popup"
+        id="cookiesPopup"
+        aria-label="Ustawienia cookies"
+      >
+        <div class="cookies-popup__box">
+          <div class="cookies-popup__content">
+            <div class="cookies-popup__text">
+              <div class="cookies-popup__title">Używamy plików cookies</div>
+
+              <div class="cookies-popup__desc">
+                Używamy cookies, aby poprawić działanie strony, analizować ruch
+                i dostosować treści. Możesz zaakceptować wszystkie lub
+                dostosować ustawienia.
+              </div>
+            </div>
+
+            <div class="cookies-popup__actions">
+              <button
+                class="cookies-btn cookies-btn--ghost"
+                id="cookiesSettingsBtn"
+              >
+                Ustawienia
+              </button>
+
+              <button
+                class="cookies-btn cookies-btn--secondary"
+                id="cookiesRejectBtn"
+              >
+                Odrzuć
+              </button>
+
+              <button
+                class="cookies-btn cookies-btn--primary"
+                id="cookiesAcceptBtn"
+              >
+                Akceptuj wszystkie
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="cookies-settings" id="cookiesSettings">
+        <div class="cookies-settings__panel">
+          <div class="cookies-settings__header">
+            <div class="cookies-settings__title">Ustawienia cookies</div>
+
+            <button class="cookies-settings__close" id="cookiesCloseSettings">
+              ✕
+            </button>
+          </div>
+
+          <div class="cookies-settings__body">
+            <div class="cookies-switch">
+              <div>
+                <div class="cookies-switch__title">Niezbędne cookies</div>
+                <div class="cookies-switch__desc">
+                  Wymagane do działania strony.
+                </div>
+              </div>
+
+              <input type="checkbox" checked disabled />
+            </div>
+
+            <div class="cookies-switch">
+              <div>
+                <div class="cookies-switch__title">Analityczne cookies</div>
+                <div class="cookies-switch__desc">
+                  Pomagają analizować ruch na stronie.
+                </div>
+              </div>
+
+              <input type="checkbox" id="cookiesAnalytics" />
+            </div>
+
+            <div class="cookies-switch">
+              <div>
+                <div class="cookies-switch__title">Marketingowe cookies</div>
+                <div class="cookies-switch__desc">
+                  Używane do personalizacji reklam.
+                </div>
+              </div>
+
+              <input type="checkbox" id="cookiesMarketing" />
+            </div>
+          </div>
+
+          <div class="cookies-settings__footer">
+            <button
+              class="cookies-btn cookies-btn--primary"
+              id="cookiesSaveSettings"
+            >
+              Zapisz ustawienia
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      ;(function () {
+        const CART_KEY = 'mgx_cart_v1'
+
+        function readCart() {
+          try {
+            const raw = localStorage.getItem(CART_KEY)
+            const cart = raw
+              ? JSON.parse(raw)
+              : {
+                  items: [],
+                }
+            if (!cart.items) cart.items = []
+            return cart
+          } catch {
+            return {
+              items: [],
+            }
+          }
+        }
+
+        function saveCart(cart) {
+          localStorage.setItem(CART_KEY, JSON.stringify(cart))
+          window.dispatchEvent(new Event('mgx:cart-updated'))
+        }
+
+        function countItems(cart) {
+          return cart.items.reduce((sum, it) => sum + (Number(it.qty) || 0), 0)
+        }
+
+        function formatPLN(n) {
+          return new Intl.NumberFormat('pl-PL').format(n) + ' zł'
+        }
+
+        function updateHeaderBadge() {
+          const badge = document.getElementById('cartBadge')
+          if (!badge) return
+          const cart = readCart()
+          const c = countItems(cart)
+          badge.textContent = String(c)
+          badge.style.display = c > 0 ? 'inline-flex' : 'none'
+        }
+
+        window.MGXCart = {
+          get() {
+            return readCart()
+          },
+
+          add(item, qty = 1) {
+            const cart = readCart()
+            const q = Math.max(1, Number(qty) || 1)
+
+            const existing = cart.items.find((x) => x.id === item.id)
+            if (existing) {
+              existing.qty += q
+            } else {
+              cart.items.push({
+                id: String(item.id),
+                name: String(item.name || 'Product'),
+                price: Number(item.price) || 0,
+                img: String(item.img || ''),
+                meta: String(item.meta || ''),
+                qty: q,
+              })
+            }
+
+            saveCart(cart)
+            updateHeaderBadge()
+            return cart
+          },
+
+          setQty(id, qty) {
+            const cart = readCart()
+            const it = cart.items.find((x) => x.id === id)
+            if (!it) return cart
+
+            const q = Number(qty)
+            if (!Number.isFinite(q) || q <= 0) {
+              cart.items = cart.items.filter((x) => x.id !== id)
+            } else {
+              it.qty = Math.min(99, Math.max(1, Math.round(q)))
+            }
+
+            saveCart(cart)
+            updateHeaderBadge()
+            return cart
+          },
+
+          remove(id) {
+            const cart = readCart()
+            cart.items = cart.items.filter((x) => x.id !== id)
+            saveCart(cart)
+            updateHeaderBadge()
+            return cart
+          },
+
+          clear() {
+            const cart = {
+              items: [],
+            }
+            saveCart(cart)
+            updateHeaderBadge()
+            return cart
+          },
+
+          totals() {
+            const cart = readCart()
+            const subtotal = cart.items.reduce(
+              (sum, it) => sum + it.price * it.qty,
+              0,
+            )
+            return {
+              count: countItems(cart),
+              subtotal,
+              subtotalFmt: formatPLN(subtotal),
+            }
+          },
+
+          formatPLN,
+        }
+
+        updateHeaderBadge()
+        window.addEventListener('mgx:cart-updated', updateHeaderBadge)
+
+        window.addEventListener('focus', updateHeaderBadge)
+      })()
+    </script>
+    <script>
+      ;(function () {
+        const slider = document.getElementById('featSlider')
+        const prev = document.getElementById('featPrev')
+        const next = document.getElementById('featNext')
+
+        function slideBy(dir) {
+          if (!slider) return
+
+          const card = slider.querySelector('.pCard')
+          const step = card ? card.getBoundingClientRect().width + 12 : 360
+
+          slider.scrollBy({
+            left: dir * step,
+            behavior: 'smooth',
+          })
+        }
+
+        if (prev) prev.addEventListener('click', () => slideBy(-1))
+        if (next) next.addEventListener('click', () => slideBy(1))
+
+        const form = document.getElementById('skiFinder')
+        const out = document.getElementById('finderOut')
+        const resBox = out ? out.querySelector('.finderOut__result') : null
+
+        const resTitle = document.getElementById('resTitle')
+        const resTag = document.getElementById('resTag')
+        const resType = document.getElementById('resType')
+        const resLen = document.getElementById('resLen')
+        const resWhy = document.getElementById('resWhy')
+        const resLink = document.getElementById('resLink')
+
+        function clamp(n, a, b) {
+          return Math.max(a, Math.min(b, n))
+        }
+
+        function calcLen(heightCm, level) {
+          let min = heightCm - 20
+          let max = heightCm - 5
+
+          if (level === 'beginner') {
+            min = heightCm - 25
+            max = heightCm - 12
+          }
+
+          if (level === 'advanced') {
+            min = heightCm - 15
+            max = heightCm
+          }
+
+          min = clamp(min, 130, 200)
+          max = clamp(max, 140, 205)
+
+          return `${Math.round(min)}–${Math.round(max)} cm`
+        }
+
+        function buildRec(level, terrain, style, heightCm) {
+          const length = calcLen(heightCm, level)
+
+          let type = 'All-mountain'
+          let tag = 'Uniwersalne'
+          let why =
+            'Uniwersalna konfiguracja zapewniająca stabilność na przygotowanych trasach oraz komfort w zróżnicowanych warunkach.'
+          let link = 'skis'
+
+          if (terrain === 'groomers') {
+            type = 'Carving / trasy przygotowane'
+            tag = 'Przyczepność'
+            why =
+              'Idealne do precyzyjnych skrętów i stabilnej jazdy na przygotowanych trasach.'
+          }
+
+          if (terrain === 'powder') {
+            type = 'Freeride / świeży śnieg'
+            tag = 'Wyporność'
+            why =
+              'Szersza konstrukcja ułatwia jazdę w głębokim śniegu i zapewnia płynne skręty.'
+          }
+
+          if (style === 'fast') {
+            tag = 'Stabilność'
+            why +=
+              ' Dłuższe narty w tym zakresie zapewnią lepszą kontrolę przy dużych prędkościach.'
+          } else if (style === 'playful') {
+            tag = 'Zwrotność'
+            why +=
+              ' Krótsze narty będą bardziej zwrotne i łatwiejsze w manewrowaniu.'
+          } else {
+            why +=
+              ' Środkowy zakres długości zapewnia komfort i przewidywalność jazdy.'
+          }
+
+          if (level === 'beginner') {
+            why =
+              'Wybierz narty łatwe w prowadzeniu. Krótsze modele pomagają szybciej opanować technikę.'
+
+            if (terrain === 'powder') {
+              why =
+                'Na początek wybierz bardziej wybaczające narty freeride o krótszej długości.'
+            }
+          }
+
+          if (level === 'advanced' && terrain === 'groomers') {
+            why =
+              'Dla zaawansowanych narciarzy carvingowe narty zapewniają maksymalną kontrolę i precyzję.'
+          }
+
+          const title = `${type} • ${length}`
+
+          return {
+            title,
+            type,
+            length,
+            tag,
+            why,
+            link,
+          }
+        }
+
+        if (form) {
+          form.addEventListener('submit', (e) => {
+            e.preventDefault()
+
+            const level = document.getElementById('level').value
+            const terrain = document.getElementById('terrain').value
+            const style = document.getElementById('style').value
+            const heightRaw = document.getElementById('height').value.trim()
+
+            const height = Number(heightRaw)
+
+            if (
+              !level ||
+              !terrain ||
+              !style ||
+              !Number.isFinite(height) ||
+              height < 120 ||
+              height > 220
+            ) {
+              alert(
+                'Wprowadź prawidłowy wzrost (120–220 cm) i wybierz wszystkie opcje.',
+              )
+              return
+            }
+
+            const rec = buildRec(level, terrain, style, height)
+
+            const empty = out.querySelector('.finderOut__empty')
+            if (empty) empty.style.display = 'none'
+
+            if (resBox) resBox.hidden = false
+
+            resTitle.textContent = rec.title
+            resTag.textContent = rec.tag
+            resType.textContent = rec.type
+            resLen.textContent = rec.length
+            resWhy.textContent = rec.why
+
+            resLink.href = rec.link
+            resLink.textContent = 'Przejdź do rekomendowanej kategorii'
+
+            resBox.scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest',
+            })
+          })
+        }
+
+        const newsForm = document.getElementById('newsForm')
+        const newsMsg = document.getElementById('newsMsg')
+
+        if (newsForm) {
+          newsForm.addEventListener('submit', (e) => {
+            e.preventDefault()
+
+            const email = document.getElementById('newsEmail').value.trim()
+
+            if (!email.includes('@')) {
+              newsMsg.textContent = 'Wprowadź poprawny adres e-mail.'
+              return
+            }
+
+            newsMsg.textContent =
+              'Dziękujemy! Sprawdź swoją skrzynkę e-mail — checklistę już wysłaliśmy.'
+
+            newsForm.reset()
+          })
+        }
+
+        const faqBox = document.getElementById('faqBox')
+
+        if (faqBox) {
+          const items = Array.from(faqBox.querySelectorAll('details.qa'))
+
+          items.forEach((d) => {
+            d.addEventListener('toggle', () => {
+              if (d.open) {
+                items.forEach((x) => {
+                  if (x !== d) x.open = false
+                })
+              }
+            })
+          })
+        }
+      })()
+    </script>
+
+    <script>
+      ;(function () {
+        const popup = document.getElementById('cookiesPopup')
+        const settings = document.getElementById('cookiesSettings')
+
+        if (localStorage.getItem('cookiesChoice')) {
+          popup.style.display = 'none'
+        }
+
+        document.getElementById('cookiesAcceptBtn').onclick = function () {
+          localStorage.setItem('cookiesChoice', 'all')
+          popup.style.display = 'none'
+        }
+
+        document.getElementById('cookiesRejectBtn').onclick = function () {
+          localStorage.setItem('cookiesChoice', 'necessary')
+          popup.style.display = 'none'
+        }
+
+        document.getElementById('cookiesSettingsBtn').onclick = function () {
+          settings.classList.add('active')
+        }
+
+        document.getElementById('cookiesCloseSettings').onclick = function () {
+          settings.classList.remove('active')
+        }
+
+        document.getElementById('cookiesSaveSettings').onclick = function () {
+          const analytics = document.getElementById('cookiesAnalytics').checked
+
+          const marketing = document.getElementById('cookiesMarketing').checked
+
+          localStorage.setItem(
+            'cookiesChoice',
+            JSON.stringify({
+              analytics,
+              marketing,
+            }),
+          )
+
+          popup.style.display = 'none'
+          settings.classList.remove('active')
+        }
+      })()
+    </script>
+    <script src="js/index.js"></script>
+  </body>
+</html>
